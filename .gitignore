@@ -1,0 +1,15 @@
+data/
+checkpoints/
+logs/
+runs/
+__pycache__/
+*.py[cod]
+*.pth
+*.pt
+*.ckpt
+*.zip
+.venv/
+lambdanet/
+.vscode/
+.idea/
+.DS_Store

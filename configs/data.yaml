@@ -1,0 +1,79 @@
+# Edit the `root` paths for your machine / Colab Drive.
+# IMPORTANT: folder names and file suffixes below are my best understanding of each
+# dataset's release layout. Run  python scripts/check_data.py  after downloading and
+# fix img_dir / lbl_dir / suffixes here if a dataset reports 0 pairs.
+
+limit: null            # e.g. 16 for quick debug runs
+
+train_aug:
+  crop_size: [512, 512]   # (H, W) -- fits a T4; raise to [512, 1024] if memory allows
+  base_height: 512
+  scale_range: [0.75, 1.5]
+  hflip: true
+  photometric: true
+
+eval:
+  height: 512             # images resized to this height; metrics computed at original label size
+
+stages:
+  pretrain:
+    - {dataset: nightcity, split: train}
+  finetune:
+    - {dataset: nightcity, split: train}
+    - {dataset: bdd100k_night, split: train, repeat: 2}
+
+eval_sets:
+  - {dataset: nightcity, split: val}
+  - {dataset: bdd100k_night, split: val}
+  - {dataset: dark_zurich, split: val}   # ~50 labelled night images (public labels)
+  - {dataset: ndd, split: test}          # zero-shot; never use for tuning
+
+datasets:
+  nightcity:
+    root: /data/NightCity
+    splits:
+      train:
+        img_dir: images/train
+        lbl_dir: labels/train
+        img_suffixes: [".png", ".jpg"]
+        lbl_candidates: [["_trainIds.png", train_id], ["_labelTrainIds.png", train_id],
+                         ["_labelIds.png", label_id], ["_gtFine_labelIds.png", label_id]]
+      val:
+        img_dir: images/val
+        lbl_dir: labels/val
+        img_suffixes: [".png", ".jpg"]
+        lbl_candidates: [["_trainIds.png", train_id], ["_labelTrainIds.png", train_id],
+                         ["_labelIds.png", label_id], ["_gtFine_labelIds.png", label_id]]
+
+  bdd100k_night:
+    kind: bdd
+    root: /data/bdd100k
+    timeofday: night        # filter via the attribute JSON; check how many images survive
+    splits:
+      train: {split_dir: train}
+      val:   {split_dir: val}
+
+  dark_zurich:
+    root: /data/DarkZurich/Dark_Zurich_val_anon
+    splits:
+      val:
+        img_dir: rgb_anon/val/night
+        lbl_dir: gt/val/night
+        img_suffixes: ["_rgb_anon.png"]
+        lbl_candidates: [["_gt_labelTrainIds.png", train_id], ["_gt_labelIds.png", label_id]]
+
+  ndd:
+    root: /data/NighttimeDrivingTest
+    splits:
+      test:
+        img_dir: leftImg8bit/test/night
+        lbl_dir: gtCoarse_daytime_trainvaltest/test/night
+        img_suffixes: ["_leftImg8bit.png"]
+        lbl_candidates: [["_gtCoarse_labelTrainIds.png", train_id], ["_gtCoarse_labelIds.png", label_id]]
+
+  # Optional UDA stretch goal: unlabelled Dark Zurich night images (needs Cityscapes for day labels)
+  dark_zurich_unlabeled:
+    kind: image_only
+    root: /data/DarkZurich/Dark_Zurich_train_anon
+    splits:
+      train: {img_dir: rgb_anon/train/night, img_suffixes: ["_rgb_anon.png"]}
