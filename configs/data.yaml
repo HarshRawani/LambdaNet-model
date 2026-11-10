@@ -25,55 +25,53 @@ stages:
 eval_sets:
   - {dataset: nightcity, split: val}
   - {dataset: bdd100k_night, split: val}
-  - {dataset: dark_zurich, split: val}   # ~50 labelled night images (public labels)
   - {dataset: ndd, split: test}          # zero-shot; never use for tuning
+
 
 datasets:
   nightcity:
-    root: /data/NightCity
+    root: data/NightCity
     splits:
       train:
-        img_dir: images/train
-        lbl_dir: labels/train
-        img_suffixes: [".png", ".jpg"]
-        lbl_candidates: [["_trainIds.png", train_id], ["_labelTrainIds.png", train_id],
-                         ["_labelIds.png", label_id], ["_gtFine_labelIds.png", label_id]]
+        img_dir: NightCity-images/images/train
+        lbl_dir: NightCity-label/label/train
+        img_suffixes: [".png"]
+        lbl_candidates: [["_labelIds.png", label_id]]
+
       val:
-        img_dir: images/val
-        lbl_dir: labels/val
-        img_suffixes: [".png", ".jpg"]
-        lbl_candidates: [["_trainIds.png", train_id], ["_labelTrainIds.png", train_id],
-                         ["_labelIds.png", label_id], ["_gtFine_labelIds.png", label_id]]
+        img_dir: NightCity-images/images/val
+        lbl_dir: NightCity-label/label/val
+        img_suffixes: [".png"]
+        lbl_candidates: [["_labelIds.png", label_id]]
 
   bdd100k_night:
-    kind: bdd
-    root: /data/bdd100k
-    timeofday: night        # filter via the attribute JSON; check how many images survive
+    kind: paired
+    root: data/BDD100K_night
     splits:
-      train: {split_dir: train}
-      val:   {split_dir: val}
-
-  dark_zurich:
-    root: /data/DarkZurich/Dark_Zurich_val_anon
-    splits:
+      train:
+        img_dir: 10k/train
+        lbl_dir: masks/train
+        img_suffixes: [".jpg"]
+        lbl_candidates: [[".png", train_id]]
       val:
-        img_dir: rgb_anon/val/night
-        lbl_dir: gt/val/night
-        img_suffixes: ["_rgb_anon.png"]
-        lbl_candidates: [["_gt_labelTrainIds.png", train_id], ["_gt_labelIds.png", label_id]]
+        img_dir: 10k/val
+        lbl_dir: masks/val
+        img_suffixes: [".jpg"]
+        lbl_candidates: [[".png", train_id]]
 
   ndd:
-    root: /data/NighttimeDrivingTest
+    root: data/NDD
     splits:
       test:
         img_dir: leftImg8bit/test/night
         lbl_dir: gtCoarse_daytime_trainvaltest/test/night
         img_suffixes: ["_leftImg8bit.png"]
-        lbl_candidates: [["_gtCoarse_labelTrainIds.png", train_id], ["_gtCoarse_labelIds.png", label_id]]
-
-  # Optional UDA stretch goal: unlabelled Dark Zurich night images (needs Cityscapes for day labels)
+        lbl_candidates: [["_gtCoarse_labelTrainIds.png", train_id]]
+        
   dark_zurich_unlabeled:
     kind: image_only
-    root: /data/DarkZurich/Dark_Zurich_train_anon
+    root: data/Dark_Zurich
     splits:
-      train: {img_dir: rgb_anon/train/night, img_suffixes: ["_rgb_anon.png"]}
+      test:
+        img_dir: rgb_anon/test/night
+        img_suffixes: ["_rgb_anon.png"]
